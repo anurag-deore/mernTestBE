@@ -1,0 +1,235 @@
+## ⛔ Thing to keep in mind
+
+- Chatgpt use is not allowed, however, you can refer to google
+- The maximum allotted time for this challenge is 3 hrs. Pls manage your time accordingly.
+- keep your camera on throughout the challenge
+- share your entire screen throughout the challenge
+- once you complete the challenge, please ring us at 9560444655 to assist you with your response & demo recording
+- once you are done, push your project on a github link and WhatsApp it to the above number
+Setup your personal GitHub account to be able to push the code.
+- Setup your Postman to be able to demo/test your APIs
+
+## **🧠 What's the Mission?**
+
+---
+
+## 💽 Database readiness
+
+### 📊**Generate Dataset**
+
+Use the below query to generate dataset to be loaded on Postgresql/mysql
+
+```jsx
+const fs = require("fs");
+const { v4: uuidv4 } = require("uuid");
+
+function randomDate() {
+  const start = new Date(2023, 0, 1);
+  const end = new Date();
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+  )
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+}
+
+function randomUserID(users) {
+  return users[Math.floor(Math.random() * users.length)].UserID;
+}
+
+const users = Array.from({ length: 20 }, () => ({
+  UserID: uuidv4(),
+  Username: `User_${Math.random().toString(36).substring(7)}`,
+  PasswordHash: Math.random().toString(36).substring(7),
+  Email: `email_${Math.random().toString(36).substring(7)}@example.com`,
+  UserType: Math.random() > 0.5 ? "admin" : "regular",
+}));
+
+const tasks = Array.from({ length: 10000 }, () => ({
+  TaskID: uuidv4(),
+  UserID: randomUserID(users),
+  Title: `Task ${Math.random().toString(36).substring(2, 15)}`,
+  Description: `Description ${Math.random().toString(36).substring(2, 100)}`,
+  Priority: ["high", "medium", "low"][Math.floor(Math.random() * 3)],
+  Status: ["pending", "in progress", "completed"][
+    Math.floor(Math.random() * 3)
+  ],
+  CreationDate: randomDate(),
+  DueDate: randomDate(),
+  Tags: `Tag_${Math.random().toString(36).substring(7)}`,
+}));
+
+// Generate SQL for Users
+const userSQLStatements = users
+  .map(
+    (user) =>
+      `INSERT INTO Users (UserID, Username, PasswordHash, Email, UserType) VALUES ('${user.UserID}', '${user.Username}', '${user.PasswordHash}', '${user.Email}', '${user.UserType}');`
+  )
+  .join("\n");
+
+// Generate SQL for Tasks
+const taskSQLStatements = tasks
+  .map(
+    (task) =>
+      `INSERT INTO Tasks (TaskID, UserID, Title, Description, Priority, Status, CreationDate, DueDate, Tags) VALUES ('${task.TaskID}', '${task.UserID}', '${task.Title}', '${task.Description}', '${task.Priority}', '${task.Status}', '${task.CreationDate}', '${task.DueDate}', '${task.Tags}');`
+  )
+  .join("\n");
+
+// Write to SQL file
+fs.writeFileSync("insert_users.sql", userSQLStatements);
+fs.writeFileSync("insert_tasks.sql", taskSQLStatements);
+```
+
+**Run the Script:** Execute the script using Node.js by running **`node generateData.js`** in your command line or terminal. This will generate **`insert_users.sql`** and **`insert_tasks.sql`** files with the user and task data.
+
+Use the below query to generate dataset to be loaded on MongoDB
+
+```jsx
+const fs = require("fs");
+const { v4: uuidv4 } = require("uuid");
+
+function randomDate() {
+  const start = new Date(2023, 0, 1);
+  const end = new Date();
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+  )
+    .toISOString()
+    .slice(0, 19)
+    .replace("T", " ");
+}
+
+function randomUserID(users) {
+  return users[Math.floor(Math.random() * users.length)].UserID;
+}
+
+const users = Array.from({ length: 5 }, () => ({
+  UserID: uuidv4(),
+  Username: `User_${Math.random().toString(36).substring(7)}`,
+  PasswordHash: Math.random().toString(36).substring(7),
+  Email: `email_${Math.random().toString(36).substring(7)}@example.com`,
+  UserType: Math.random() > 0.5 ? "admin" : "regular",
+}));
+
+const tasks = Array.from({ length: 10000 }, () => ({
+  TaskID: uuidv4(),
+  UserID: randomUserID(users),
+  Title: `Task ${Math.random().toString(36).substring(2, 15)}`,
+  Description: `Description ${Math.random().toString(36).substring(2, 100)}`,
+  Priority: ["high", "medium", "low"][Math.floor(Math.random() * 3)],
+  Status: ["pending", "in progress", "completed"][
+    Math.floor(Math.random() * 3)
+  ],
+  CreationDate: randomDate(),
+  DueDate: randomDate(),
+  Tags: `Tag_${Math.random().toString(36).substring(7)}`,
+}));
+
+// Write users and tasks to JSON files
+fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
+fs.writeFileSync("tasks.json", JSON.stringify(tasks, null, 2));
+```
+
+**Run the Script:** Execute the script using Node.js by running **`node generateData.js`** in your command line or terminal. This will generate **`users.json`** and **`tasks.json`** files with the user and task data.
+
+> **Please note this script will generate users with their hashed password as well, but they may not be usable as is. So while implementing the challenge, you can delete couple of users and make sure you recreate them with same userId as there are tasks already associated with these users as we want to see those loaded in UI.**
+
+> **Also please note when you Demo, you will have to
+> a) Show one flow for new user where u create a user and tasks and list those tasks
+> b) and one flow for existing user where you don;t have to create a user but login and show task list and able to create a task.**
+
+### 🗄️**Load Data to Database**
+
+**_Import Data into mysql/postgresql/mongodb_**
+
+```jsx
+# Load users data into mysql
+mysql -u your_username -p your_database_name < insert_users.sql
+
+# Load tasks data into mysql
+mysql -u your_username -p your_database_name < insert_tasks.sql
+```
+
+```jsx
+# Load users data into PostgreSQL
+psql -U your_username -d your_database_name -f insert_users.sql
+
+# Load tasks data into PostgreSQL
+psql -U your_username -d your_database_name -f insert_tasks.sql
+```
+
+```jsx
+# Load books data into mongodb
+mongoimport --db taskmgmt --collection users --file users.json --jsonArray --authenticationDatabase admin -u <username> -p <password>
+
+# Load members data into mongodb
+mongoimport --db taskmgmt --collection tasks --file tasks.json --jsonArray --authenticationDatabase admin -u <username> -p <password>
+```
+
+---
+
+### Create a Task Management App using the MERN stack
+
+**Task Description:**
+
+- Use React for the front end with functional components and hooks.
+- **_Implement a higher-order-component (HOC) for protected routes to ensure certain routes are only accessible by authenticated users._**
+- **_Implement your own caching custom “useHookAPI” hook using LRU strategy for avoiding unnecessary network calls._**
+- Implement Create and List operations for tasks.
+
+1. **Authentication:**
+
+- Add user authentication using JWT (JSON Web Tokens).
+- Create a registration page and a login page on the React front end.
+- Store JWT tokens securely and manage user sessions.
+
+1.  **Protected Routes**
+
+- Create a higher-order component (HOC) or use React's `Route` component to protect certain routes.
+- Ensure that only authenticated users can access specific pages (e.g., task creation/editing).
+
+1. **Task Management UI**
+
+- Build a UI to display tasks, including the ability to create a task and ability to get single task or all the tasks.
+  (**Please note other CRUD operations for tasks like update, delete are out of scope for this challenge**)
+- Implement memoization techniques to optimize rendering performance, especially in the task list.
+
+1. **Network Request/Response Caching
+   _While implementing caching strategy, assume that all of the CRUD operations for tasks are already implemented, so your logic for caching should support all the CRUD operations_**
+
+- Add caching mechanism to store previously fetched tasks using custom hook for caching as per LRU strategy (as mentioned above)
+- Implement cache expiration or invalidation strategy.
+- Implement redis cache(usr this if you have worked on this before) and have expiration or invalidation strategy on the server side where feasible.
+
+## 📥 Submission:
+
+- Candidates should provide the GitHub repository link for the project.
+- Include clear instructions on how to run the project locally.
+
+## 🧮 Evaluation Criteria:
+
+**Functionality and Correctness:**
+
+- Correct implementation of create/list operations.
+- Proper handling of authentication and user sessions.
+- Implementation of protected routes and proper route guarding.
+
+**Optimization:**
+
+- Effective use of memoization techniques in React components.
+- Use of caching to optimize network request/response handling.
+
+**Code Quality and Maintainability:**
+
+- Is the code well-structured, readable, and properly documented?
+- Are best practices followed for error handling, input validation, and logging?
+- Is the solution easily extensible and maintainable for future enhancements or modifications?
+
+**Demo Showcasing:**
+
+- How will you are able to showcase demo of the entire challenge. Doing walk-through of the code, what all you could implement and what you could not implement and what approaches you took for each of the functionalities implemented
+
+**Overall Innovation and Creativity:**
+
+- Are there any innovative approaches or creative solutions applied to address specific challenges or requirements?
